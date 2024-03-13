@@ -101,6 +101,7 @@ print(f"Comment IDs already found: {cross_post_gitlab_comments.keys()}")
 
 def get_gitlab_comment_body(github_issue_details):
     return (
+        f"From @{github_issue_details.get('user', {}).get('login', '')}\n\n" +
         github_issue_details.get("body") +
         f"\n\nLink: {github_issue_details.get('html_url')}" +
         f"\n\ngithub-comment-id:{github_issue_details.get('id')}"
