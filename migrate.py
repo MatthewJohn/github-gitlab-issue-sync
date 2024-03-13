@@ -86,14 +86,25 @@ gitlab_comments = requests.get(
     GITLAB_BASE_ISSUE_API_URL + f"/{gitlab_issue_id}/notes",
     headers=GITLAB_AUTH_HEADERS
 ).json()
-comments_already_posted = []
+# Map of gitlab comments, keyed by github issue ID and value of gitlab comment body and gitlab note ID
+cross_post_gitlab_comments = {}
 gitlab_comment_re = re.compile(r"github-comment-id:(\d+)")
 for comment in gitlab_comments:
     for comment_line in comment.get("body", "").split("\n"):
         if match := gitlab_comment_re.match(comment_line):
-            comments_already_posted.append(match.group(1))
+            cross_post_gitlab_comments[match.group(1)] = {
+                "body": comment.get("body"),
+                "note_id": comment.get("id")
+            }
 
-print(f"Comment IDs already found: {comments_already_posted}")
+print(f"Comment IDs already found: {cross_post_gitlab_comments.keys()}")
+
+def get_gitlab_comment_body(github_issue_details):
+    return (
+        github_issue_details.get("body") +
+        f"\n\nLink: {github_issue_details.get('html_url')}" +
+        f"\n\ngithub-comment-id:{github_issue_details.get('id')}"
+    )
 
 # Step 6 - iterate through comments, cross-posting any that don't exist
 for github_comment in github_comments:
@@ -102,18 +113,26 @@ for github_comment in github_comments:
         print("Skipping cross-post comment")
         continue
 
-    if github_comment_id not in comments_already_posted:
+    gitlab_comment_body = get_gitlab_comment_body(github_comment)
+    if github_comment_id not in cross_post_gitlab_comments.keys():
         print(f"Posting comment: {github_comment_id}")
         gitlab_comment_post_res = requests.post(
             GITLAB_BASE_ISSUE_API_URL + f"/{gitlab_issue_id}/notes",
             headers=GITLAB_AUTH_HEADERS,
             json={
-                "body": (
-                    github_comment.get("body") +
-                    f"\n\nLink: {github_comment.get('html_url')}" +
-                    f"\n\ngithub-comment-id:{github_comment_id}"
-                )
+                "body": gitlab_comment_body
             }
         )
         if gitlab_comment_post_res.status_code != 201:
             raise Exception(f"Unable to post comment on gitlab: {gitlab_comment_post_res.status_code}: {gitlab_comment_post_res.json()}")
+    elif cross_post_gitlab_comments[github_comment_id]["body"] != gitlab_comment_body:
+        print(f"Github comment for {github_comment_id} has been updated - updating gitlab comment")
+        gitlab_comment_update_res = requests.put(
+            GITLAB_BASE_ISSUE_API_URL + f"/{gitlab_issue_id}/notes/{cross_post_gitlab_comments[github_comment_id]['note_id']}",
+            headers=GITLAB_AUTH_HEADERS,
+            json={
+                "body": gitlab_comment_body
+            }
+        )
+    else:
+        print(f"Github comment for {github_comment_id} is up-to-date")
