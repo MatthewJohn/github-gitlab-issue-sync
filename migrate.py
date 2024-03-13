@@ -63,7 +63,7 @@ if not gitlab_issue_id:
             "title": github_issue_details.get("title"),
             "description": (
                 github_issue_details.get("body").replace("\r\n", "\n") +
-                f"\n\nGithub reference: https://github.com/{args.github_org}/{args.github_repo}/issues/{args.github_issue}"
+                f"\n\nGithub reference: {github_issue_details.get('html_url')}"
             )
         }
     ).json()
@@ -110,6 +110,7 @@ for github_comment in github_comments:
             json={
                 "body": (
                     github_comment.get("body") +
+                    f"\n\nLink: {github_comment.get('html_url')}" +
                     f"\n\ngithub-comment-id:{github_comment_id}"
                 )
             }
