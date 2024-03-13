@@ -126,7 +126,7 @@ for github_comment in github_comments:
         )
         if gitlab_comment_post_res.status_code != 201:
             raise Exception(f"Unable to post comment on gitlab: {gitlab_comment_post_res.status_code}: {gitlab_comment_post_res.json()}")
-    elif cross_post_gitlab_comments[github_comment_id]["body"] != gitlab_comment_body:
+    elif cross_post_gitlab_comments[github_comment_id]["body"].replace('\r', '') != gitlab_comment_body.replace('\r', ''):
         print(f"Github comment for {github_comment_id} has been updated - updating gitlab comment")
         gitlab_comment_update_res = requests.put(
             GITLAB_BASE_ISSUE_API_URL + f"/{gitlab_issue_id}/notes/{cross_post_gitlab_comments[github_comment_id]['note_id']}",
