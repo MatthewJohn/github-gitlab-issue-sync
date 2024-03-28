@@ -39,7 +39,19 @@ github_issue_details = requests.get(GITHUB_BASE_ISSUE_API_URL, headers=GITHUB_AU
 print(f"Found github issue details: {github_issue_details.get('title')}")
 
 # Step 2 - Get all github comments
-github_comments = requests.get(GITHUB_BASE_ISSUE_API_URL + "/comments", headers=GITHUB_AUTH_HEADERS).json()
+github_comments = []
+github_comments_itx = 1
+github_comments_per_page = 100
+while True:
+    github_comments_page = requests.get(
+        GITHUB_BASE_ISSUE_API_URL + f"/comments?page={github_comments_itx}&per_page={github_comments_per_page}",
+        headers=GITHUB_AUTH_HEADERS
+    ).json()
+    github_comments += github_comments_page
+    if len(github_comments_page) < github_comments_per_page:
+        break
+    github_comments_itx += 1
+
 print(f"Found {len(github_comments)} github issue comments")
 
 # Step 3 - Search for github comment referencing gitlab issue sync
