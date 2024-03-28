@@ -82,10 +82,19 @@ if not gitlab_issue_id:
     print('Posted comment on Github issue')
 
 # Step 5 - (if already exist), check comments that already exist in gitlab
-gitlab_comments = requests.get(
-    GITLAB_BASE_ISSUE_API_URL + f"/{gitlab_issue_id}/notes",
-    headers=GITLAB_AUTH_HEADERS
-).json()
+gitlab_comments = []
+gitlab_comment_itx = 1
+gitlab_comments_per_page = 100
+while True:
+    gitlab_comments_page = requests.get(
+        GITLAB_BASE_ISSUE_API_URL + f"/{gitlab_issue_id}/notes?page={gitlab_comment_itx}&per_page={gitlab_comments_per_page}",
+        headers=GITLAB_AUTH_HEADERS
+    ).json()
+    gitlab_comments += gitlab_comments_page
+    if len(gitlab_comments_page) < gitlab_comments_per_page:
+        break
+    gitlab_comment_itx += 1
+
 # Map of gitlab comments, keyed by github issue ID and value of gitlab comment body and gitlab note ID
 cross_post_gitlab_comments = {}
 gitlab_comment_re = re.compile(r"github-comment-id:(\d+)")
