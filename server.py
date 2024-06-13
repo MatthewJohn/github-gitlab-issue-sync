@@ -4,7 +4,7 @@ import os
 
 from migration_lib import Migration
 
-SLEEP_INTERVAL_MINS = 120
+SLEEP_INTERVAL_MINS = int(os.environ.get("SLEEP_INTERVAL", 120))
 
 migration = Migration(
     github_org=os.environ.get("GITHUB_ORG"),
