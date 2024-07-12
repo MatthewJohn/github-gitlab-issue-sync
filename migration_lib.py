@@ -44,7 +44,10 @@ class Migration:
                 raise Exception("Got non-200 whilst getting issues")
             page_issues = res.json()
 
-            github_issues += [i["number"] for i in page_issues]
+            github_issues += [
+                i["number"] for i in page_issues
+                if i.get("html_url", "").endswith(f"/issues/{i.get('number')}")
+            ]
             if len(page_issues) < issues_per_page:
                 break
             page += 1
