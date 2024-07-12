@@ -31,7 +31,7 @@ class Migration:
             "Accept": "application/vnd.github+json",
         }
 
-    def get_gitub_issues(self):
+    def get_github_issues(self):
         """Return all github issues"""
         github_issues = []
         page = 1

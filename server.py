@@ -16,7 +16,7 @@ migration = Migration(
 )
 
 while True:
-    for github_issue in migration.get_gitub_issues():
+    for github_issue in migration.get_github_issues():
         migration.sync_github_issue(github_issue)
 
     time.sleep(SLEEP_INTERVAL_MINS * 60)
