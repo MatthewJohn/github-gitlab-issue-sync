@@ -110,6 +110,8 @@ class Migration:
             ).json()
             gitlab_issue_id = gitlab_create_issue_res.get("iid")
             print(f'Created new gitlab issue: {gitlab_issue_id}')
+            if gitlab_issue_id is None:
+                raise Exception(f"Failed to create github issue: {gitlab_create_issue_res}")
 
             # Post comment to github issue with gitlab issue ID
             github_comment_post = requests.post(
